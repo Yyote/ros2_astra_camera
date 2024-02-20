@@ -59,7 +59,6 @@ sudo make install
 mkdir -p ~/ros2_ws/src
 ```
 
-- ~~Извлеките и скопируйте openNISDk_ROS2_xxx.tar.gz в ~/ros2_ws/src/~~
 - Установите правила libusb
 
 ```bash
