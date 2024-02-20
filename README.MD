@@ -13,7 +13,7 @@
 - Установите зависимости (будьте внимательны с вашим дистрибутивом ROS)
 
 ```bash
-Предполагая, что вы создали окружение ros, выполните следующие действия
+# Предполагая, что вы создали окружение ros, выполните следующие действия
 sudo apt install libgflags-dev ros-$ROS_DISTRO-image-geometry ros-$ROS_DISTRO-camera-info-manager\
 ros-$ROS_DISTRO-image-transport ros-$ROS_DISTRO-image-publisher libgoogle-glog-dev libusb-1.0-0-dev libeigen3-dev
 ```
