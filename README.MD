@@ -71,8 +71,10 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 ```bash
  cd ~/ros2_ws
 source /opt/ros/galactic/setup.bash 
-colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release```Запуск камеры
+colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
+
+Запуск камеры
 
 - В терминале 1
 
