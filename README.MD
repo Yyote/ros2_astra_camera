@@ -1,74 +1,88 @@
 # ros2_astra_camera
+Драйвер ROS2 для 3D-камер Orbbec.
 
-A ROS2 driver for Orbbec 3D cameras
-
-## Install dependencies
+## Установите зависимости
 
 ### ROS2
 
-● Please refer to the
-official [ROS 2 installation guide](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html)
+- Пожалуйста, обратитесь к
+официальное руководство по установке [ROS 2](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html)
 
-### other dependencies
+### Другие зависимости
 
-● Install dependencies (be careful with your ROS distribution)
+- Установите зависимости (будьте внимательны с вашим дистрибутивом ROS)
 
 ```bash
- Assuming you have sourced the ros environment, same below
-sudo apt install libgflags-dev  ros-$ROS_DISTRO-image-geometry ros-$ROS_DISTRO-camera-info-manager\
+Предполагая, что вы создали окружение ros, выполните следующие действия
+sudo apt install libgflags-dev ros-$ROS_DISTRO-image-geometry ros-$ROS_DISTRO-camera-info-manager\
 ros-$ROS_DISTRO-image-transport ros-$ROS_DISTRO-image-publisher libgoogle-glog-dev libusb-1.0-0-dev libeigen3-dev
-
 ```
 
-● Install libuvc
+- Установите libuvc
 
 ```bash
 git clone https://github.com/libuvc/libuvc.git
 cd libuvc
 mkdir build && cd build
-cmake .. && make -j4
+cmake ... && make -j4
 sudo make install
-sudo ldconfig # Refreshing the link library
+sudo ldconfig # Обновление библиотеки ссылок
 ```
 
-### Getting Started
+- Установите `nlohmann/json`
 
-#### Use cases
+Нужно скачать репозиторий:
 
-● Create a new ros2 workspace
+```shell
+cd ~
+git clone git@github.com:nlohmann/json.git
+```
+
+Далее переходим в репозиторий:
+
+```shell
+cd json
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
+
+### Начало работы
+
+#### Примеры использования
+
+- Создание нового рабочего пространства ros2
 
 ```bash
 mkdir -p ~/ros2_ws/src
 ```
 
-● Extract and copy openNISDk_ROS2_xxx.tar.gz to ~/ros2_ws/src/
-● Install libusb rules
+- Извлеките и скопируйте openNISDk_ROS2_xxx.tar.gz в ~/ros2_ws/src/
+- Установите правила libusb
 
 ```bash
 cd ~/ros2_ws/src/ros2_astra_camera/astra_camera/scripts
 sudo bash install.sh
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
-
-● Compiling
+- Компиляция
 
 ```bash
  cd ~/ros2_ws
 source /opt/ros/galactic/setup.bash 
-colcon build --event-handlers  console_direct+  --cmake-args  -DCMAKE_BUILD_TYPE=Release
+colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release```Запуск камеры
 ```
 
-Starting the camera
+- В терминале 1
 
-● In terminal 1
-
-```bash
-source /opt/ros/galactic/setup.bash 
+```bashsource /opt/ros/galactic/setup.bash 
 source ./install/setup.bash 
-ros2 launch astra_camera astra.launch.xml
+ros2 launch astra_camera astra.launch.xml```
 ```
 
-● In terminal 2
+- В терминале 2
 
 ```bash
 source /opt/ros/galactic/setup.bash 
