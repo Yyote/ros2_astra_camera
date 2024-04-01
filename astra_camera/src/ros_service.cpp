@@ -24,7 +24,7 @@ void OBCameraNode::setupCameraCtrlServices() {
   using std_srvs::srv::SetBool;
   for (auto stream_index : IMAGE_STREAMS) {
     if (!enable_stream_[stream_index]) {
-      RCLCPP_INFO_STREAM(logger_, stream_name_[stream_index] << " is not enable");
+      RCLCPP_INFO_ONCE(logger_, stream_name_[stream_index] << " is not enable");
       continue;
     }
     auto stream_name = stream_name_[stream_index];
@@ -159,7 +159,7 @@ bool OBCameraNode::setExposureCallback(const std::shared_ptr<SetInt32::Request>&
     if (rc != openni::STATUS_OK) {
       ss << "Couldn't set color exposure: " << openni::OpenNI::getExtendedError();
       response->message = ss.str();
-      RCLCPP_ERROR_STREAM(logger_, response->message);
+      RCLCPP_ERROR_ONCE(logger_, response->message);
       return false;
     } else {
       return true;
@@ -171,7 +171,7 @@ bool OBCameraNode::setExposureCallback(const std::shared_ptr<SetInt32::Request>&
       std::stringstream ss;
       ss << "Couldn't set IR exposure: " << openni::OpenNI::getExtendedError();
       response->message = ss.str();
-      RCLCPP_ERROR_STREAM(logger_, response->message);
+      RCLCPP_ERROR_ONCE(logger_, response->message);
       return false;
     } else {
       return true;
@@ -257,7 +257,7 @@ bool OBCameraNode::setAutoWhiteBalanceEnabledCallback(
   auto camera_settings = stream->getCameraSettings();
   if (camera_settings == nullptr) {
     response->message = stream_name_[stream_index] + " Camera settings not available";
-    RCLCPP_ERROR_STREAM(logger_, response->message);
+    RCLCPP_ERROR_ONCE(logger_, response->message);
     return false;
   }
   auto data = request->data;
@@ -266,7 +266,7 @@ bool OBCameraNode::setAutoWhiteBalanceEnabledCallback(
     std::stringstream ss;
     ss << " Couldn't set auto white balance: " << openni::OpenNI::getExtendedError();
     response->message = ss.str();
-    RCLCPP_ERROR_STREAM(logger_, ss.str());
+    RCLCPP_ERROR_ONCE(logger_, ss.str());
     return false;
   } else {
     return true;
@@ -284,7 +284,7 @@ bool OBCameraNode::setAutoExposureCallback(
     if (camera_settings == nullptr) {
       response->success = false;
       response->message = stream_name_[stream_index] + " Camera settings not available";
-      RCLCPP_ERROR_STREAM(logger_, response->message);
+      RCLCPP_ERROR_ONCE(logger_, response->message);
       return false;
     }
     status = camera_settings->setAutoExposureEnabled(request->data);
@@ -299,7 +299,7 @@ bool OBCameraNode::setAutoExposureCallback(
     std::stringstream ss;
     ss << "Couldn't set auto exposure: " << openni::OpenNI::getExtendedError();
     response->message = ss.str();
-    RCLCPP_ERROR_STREAM(logger_, ss.str());
+    RCLCPP_ERROR_ONCE(logger_, ss.str());
     return false;
   } else {
     return true;
@@ -330,7 +330,7 @@ bool OBCameraNode::setLdpEnableCallback(const std::shared_ptr<SetBool::Request>&
   if (status != openni::STATUS_OK) {
     std::stringstream ss;
     ss << "Couldn't set LDP enable: " << openni::OpenNI::getExtendedError();
-    RCLCPP_ERROR_STREAM(logger_, ss.str());
+    RCLCPP_ERROR_ONCE(logger_, ss.str());
     response->message = ss.str();
     return false;
   } else {
@@ -357,7 +357,7 @@ bool OBCameraNode::getExposureCallback(const std::shared_ptr<GetInt32::Request>&
     if (camera_settings == nullptr) {
       response->success = false;
       response->message = stream_name_[stream_index] + " Camera settings not available";
-      RCLCPP_ERROR_STREAM(logger_, response->message);
+      RCLCPP_ERROR_ONCE(logger_, response->message);
       return false;
     }
     response->data = camera_settings->getExposure();
@@ -440,9 +440,9 @@ bool OBCameraNode::toggleSensorCallback(const std::shared_ptr<SetBool::Request>&
                                         std::shared_ptr<SetBool::Response>& response,
                                         const stream_index_pair& stream_index) {
   if (request->data) {
-    RCLCPP_INFO_STREAM(logger_, stream_name_[stream_index] << " ON");
+    RCLCPP_INFO_ONCE(logger_, stream_name_[stream_index] << " ON");
   } else {
-    RCLCPP_INFO_STREAM(logger_, stream_name_[stream_index] << " OFF");
+    RCLCPP_INFO_ONCE(logger_, stream_name_[stream_index] << " OFF");
   }
   response->success = toggleSensor(stream_index, request->data, response->message);
   return true;
@@ -455,7 +455,7 @@ bool OBCameraNode::toggleSensor(const stream_index_pair& stream_index, bool enab
 
     ss << "doesn't  have " << stream_name_[stream_index];
     msg = ss.str();
-    RCLCPP_WARN_STREAM(logger_, msg);
+    RCLCPP_WARN_ONCE(logger_, msg);
     return false;
   }
 

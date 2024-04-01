@@ -60,7 +60,7 @@ inline void setAndGetNodeParameter(
                            std::function<void(const rclcpp::Parameter&)>(), parameter_descriptor)
                 .get<T>();
   } catch (const rclcpp::ParameterTypeException& ex) {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("astra_camera_utils"),
+    RCLCPP_ERROR_ONCE(rclcpp::get_logger("astra_camera_utils"),
                         "Failed to set parameter: " << param_name << ". " << ex.what());
   }
 }

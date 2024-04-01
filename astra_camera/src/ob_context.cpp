@@ -32,7 +32,7 @@ std::vector<openni::DeviceInfo> OBContext::queryDeviceList() {
   if (first_query_) {
     openni::Array<openni::DeviceInfo> device_info_list;
     openni::OpenNI::enumerateDevices(&device_info_list);
-    RCLCPP_INFO_STREAM(logger_, "Found " << device_info_list.getSize() << " devices");
+    RCLCPP_INFO_ONCE(logger_, "Found " << device_info_list.getSize() << " devices");
     for (int i = 0; i < device_info_list.getSize(); ++i) {
       device_list.emplace_back(device_info_list[i]);
       std::lock_guard<decltype(mutex_)> lock(mutex_);
@@ -56,22 +56,22 @@ OBContext::~OBContext() {
 
 void OBContext::onDeviceStateChanged(const openni::DeviceInfo* device_info,
                                      openni::DeviceState state) {
-  RCLCPP_INFO_STREAM(logger_, "Device " << device_info->getUri() << " state changed to "
+  RCLCPP_INFO_ONCE(logger_, "Device " << device_info->getUri() << " state changed to "
                                         << magic_enum::enum_name(state));
 }
 
 void OBContext::onDeviceConnected(const openni::DeviceInfo* device_info) {
-  RCLCPP_INFO_STREAM(logger_, "onDeviceConnected");
+  RCLCPP_INFO_ONCE(logger_, "onDeviceConnected");
   std::scoped_lock<decltype(mutex_)> lock(mutex_);
   device_info_list_[device_info->getUri()] = *device_info;
 }
 
 void OBContext::onDeviceDisconnected(const openni::DeviceInfo* device_info) {
-  RCLCPP_INFO_STREAM(logger_, "onDeviceDisconnected");
+  RCLCPP_INFO_ONCE(logger_, "onDeviceDisconnected");
   std::scoped_lock<decltype(mutex_)> lock(mutex_);
   disconnected_cb_(device_info);
   device_info_list_.erase(device_info->getUri());
-  RCLCPP_INFO_STREAM(logger_, "onDeviceDisconnected done.");
+  RCLCPP_INFO_ONCE(logger_, "onDeviceDisconnected done.");
 }
 
 }  // namespace astra_camera

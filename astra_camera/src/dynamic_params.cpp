@@ -21,7 +21,7 @@ Parameters::Parameters(rclcpp::Node *node)
           if (param_functions_.find(parameter.get_name()) != param_functions_.end()) {
             auto functions = param_functions_[parameter.get_name()];
             if (functions.empty()) {
-              RCLCPP_WARN_STREAM(logger_, "Parameter " << parameter.get_name()
+              RCLCPP_WARN_ONCE(logger_, "Parameter " << parameter.get_name()
                                                        << " can not be changed in runtime.");
             } else {
               for (const auto &func : param_functions_[parameter.get_name()]) {
@@ -41,7 +41,7 @@ Parameters::~Parameters() noexcept {
     try {
       node_->undeclare_parameter(param.first);
     } catch (const rclcpp::exceptions::InvalidParameterTypeException &e) {
-      RCLCPP_ERROR_STREAM(logger_, e.what());
+      RCLCPP_ERROR_ONCE(logger_, e.what());
     }
   }
 }
@@ -65,7 +65,7 @@ rclcpp::ParameterValue Parameters::setParam(
     for (auto val : descriptor.integer_range) {
       range << val.from_value << ", " << val.to_value;
     }
-    RCLCPP_WARN_STREAM(
+    RCLCPP_WARN_ONCE(
         logger_,
         "Could not set param: " << param_name << " with "
                                 << rclcpp::Parameter(param_name, initial_value).value_to_string()
@@ -112,15 +112,15 @@ void Parameters::setParamValue(T &param, const T &value) {
     rcl_interfaces::msg::SetParametersResult results =
         node_->set_parameter(rclcpp::Parameter(param_name, value));
     if (!results.successful) {
-      RCLCPP_WARN_STREAM(logger_, "Parameter: " << param_name << " was not set:" << results.reason);
+      RCLCPP_WARN_ONCE(logger_, "Parameter: " << param_name << " was not set:" << results.reason);
     }
   } catch (const std::out_of_range &e) {
-    RCLCPP_WARN_STREAM(logger_, "Parameter was not internally declared.");
+    RCLCPP_WARN_ONCE(logger_, "Parameter was not internally declared.");
   } catch (const rclcpp::exceptions::ParameterNotDeclaredException &e) {
     std::string param_name = param_names_.at(&param);
-    RCLCPP_WARN_STREAM(logger_, "Parameter: " << param_name << " was not declared:" << e.what());
+    RCLCPP_WARN_ONCE(logger_, "Parameter: " << param_name << " was not declared:" << e.what());
   } catch (const std::exception &e) {
-    RCLCPP_ERROR_STREAM(logger_, e.what());
+    RCLCPP_ERROR_ONCE(logger_, e.what());
   }
 }
 

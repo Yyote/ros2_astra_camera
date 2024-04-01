@@ -100,7 +100,7 @@ void OBCameraNode::pollFrame() {
     auto stream_index = idx_map[ready_stream];
     status = streams[ready_stream]->readFrame(&frame);
     if (status != openni::STATUS_OK) {
-      RCLCPP_ERROR_STREAM(logger_, "read " << stream_name_[stream_index] << " stream failed "
+      RCLCPP_ERROR_ONCE(logger_, "read " << stream_name_[stream_index] << " stream failed "
                                            << openni::OpenNI::getExtendedError());
       continue;
     }
@@ -113,7 +113,7 @@ void OBCameraNode::stopStreams() {
     if (stream_started_[stream_index]) {
       CHECK_NOTNULL(streams_[stream_index]);
       streams_[stream_index]->stop();
-      RCLCPP_INFO_STREAM(logger_, "Stopped stream " << stream_name_[stream_index]);
+      RCLCPP_INFO_ONCE(logger_, "Stopped stream " << stream_name_[stream_index]);
       stream_started_[stream_index] = false;
     }
   }
@@ -134,7 +134,7 @@ void OBCameraNode::setupDevices() {
       if (status != openni::STATUS_OK) {
         std::stringstream ss;
         ss << "Couldn't create depth video stream: " << openni::OpenNI::getExtendedError();
-        RCLCPP_ERROR_STREAM(logger_, ss.str());
+        RCLCPP_ERROR_ONCE(logger_, ss.str());
         throw std::runtime_error(ss.str());
       }
       CHECK_NOTNULL(stream);
@@ -151,7 +151,7 @@ void OBCameraNode::setupDevices() {
 
 void OBCameraNode::setupVideoMode() {
   if (!use_uvc_camera_ && enable_stream_[INFRA1] && enable_stream_[COLOR]) {
-    RCLCPP_WARN_STREAM(logger_,
+    RCLCPP_WARN_ONCE(logger_,
                        "Infrared and Color streams are enabled. "
                        "Infrared stream will be disabled.");
     enable_stream_[INFRA1] = false;
@@ -191,27 +191,27 @@ void OBCameraNode::setupVideoMode() {
         }
       }
       if (!is_supported_mode) {
-        RCLCPP_WARN_STREAM(logger_, "Video mode " << video_mode << " is not supported. ");
+        RCLCPP_WARN_ONCE(logger_, "Video mode " << video_mode << " is not supported. ");
         if (is_default_mode_supported) {
-          RCLCPP_WARN_STREAM(logger_, "Default video mode " << default_video_mode
+          RCLCPP_WARN_ONCE(logger_, "Default video mode " << default_video_mode
                                                             << " is supported. "
                                                                "Stream will be enabled.");
           stream_video_mode_[stream_index] = default_video_mode;
           video_mode = default_video_mode;
           is_supported_mode = true;
         } else {
-          RCLCPP_WARN_STREAM(logger_, "Default video mode " << default_video_mode
+          RCLCPP_WARN_ONCE(logger_, "Default video mode " << default_video_mode
                                                             << "is not supported. "
                                                                "Stream will be disabled.");
           enable_stream_[stream_index] = false;
-          RCLCPP_INFO_STREAM(logger_, "Supported video modes: ");
+          RCLCPP_INFO_ONCE(logger_, "Supported video modes: ");
           for (const auto& item : supported_video_modes_[stream_index]) {
-            RCLCPP_INFO_STREAM(logger_, item);
+            RCLCPP_INFO_ONCE(logger_, item);
           }
         }
       }
       if (is_supported_mode) {
-        RCLCPP_INFO_STREAM(logger_,
+        RCLCPP_INFO_ONCE(logger_,
                            "set " << stream_name_[stream_index] << " video mode " << video_mode);
         images_[stream_index] = cv::Mat(height_[stream_index], width_[stream_index],
                                         image_format_[stream_index], cv::Scalar(0, 0, 0));
@@ -266,16 +266,16 @@ void OBCameraNode::startStreams() {
         std::stringstream ss;
         ss << "Failed to start " << stream_name_[stream_index] << " stream. "
            << openni::OpenNI::getExtendedError();
-        RCLCPP_ERROR_STREAM(logger_, ss.str());
+        RCLCPP_ERROR_ONCE(logger_, ss.str());
         throw std::runtime_error(ss.str());
       }
       stream_started_[stream_index] = true;
-      RCLCPP_INFO_STREAM(logger_, stream_name_[stream_index] << " is started");
+      RCLCPP_INFO_ONCE(logger_, stream_name_[stream_index] << " is started");
     }
   }
   if (use_uvc_camera_) {
     CHECK_NOTNULL(uvc_camera_driver_);
-    RCLCPP_INFO_STREAM(logger_, "Start UVC camera");
+    RCLCPP_INFO_ONCE(logger_, "Start UVC camera");
     uvc_camera_driver_->startStreaming();
   }
 }
@@ -488,7 +488,7 @@ void OBCameraNode::publishStaticTransforms() {
 
 void OBCameraNode::setImageRegistrationMode(bool enable) {
   if (!device_->isImageRegistrationModeSupported(openni::IMAGE_REGISTRATION_DEPTH_TO_COLOR)) {
-    RCLCPP_WARN_STREAM(logger_, "Current do not support " << magic_enum::enum_name(
+    RCLCPP_WARN_ONCE(logger_, "Current do not support " << magic_enum::enum_name(
                                     openni::IMAGE_REGISTRATION_DEPTH_TO_COLOR));
     return;
   }
@@ -554,7 +554,7 @@ void OBCameraNode::onNewFrameCallback(const openni::VideoFrameRef& frame,
 void OBCameraNode::setDepthColorSync(bool data) {
   auto rc = device_->setDepthColorSyncEnabled(data);
   if (rc != openni::STATUS_OK) {
-    RCLCPP_ERROR_STREAM(logger_, "Enabling depth color synchronization failed: "
+    RCLCPP_ERROR_ONCE(logger_, "Enabling depth color synchronization failed: "
                                      << openni::OpenNI::getExtendedError());
   }
 }
@@ -571,18 +571,18 @@ void OBCameraNode::setDepthToColorResolution(int width, int height) {
     // 16:9
     auto status = device_->setProperty(XN_MODULE_PROPERTY_D2C_RESOLUTION, RGBResolution16_9);
     if (status != openni::STATUS_OK) {
-      RCLCPP_ERROR_STREAM(logger_, "setProperty XN_MODULE_PROPERTY_D2C_RESOLUTION "
+      RCLCPP_ERROR_ONCE(logger_, "setProperty XN_MODULE_PROPERTY_D2C_RESOLUTION "
                                        << openni::OpenNI::getExtendedError());
     }
   } else if (width * 3 == height * 4) {
     // 4:3
     auto status = device_->setProperty(XN_MODULE_PROPERTY_D2C_RESOLUTION, RGBResolution4_3);
     if (status != openni::STATUS_OK) {
-      RCLCPP_ERROR_STREAM(logger_, "setProperty XN_MODULE_PROPERTY_D2C_RESOLUTION "
+      RCLCPP_ERROR_ONCE(logger_, "setProperty XN_MODULE_PROPERTY_D2C_RESOLUTION "
                                        << openni::OpenNI::getExtendedError());
     }
   } else {
-    RCLCPP_ERROR_STREAM(logger_, "NOT 16x9 or 4x3 resolution");
+    RCLCPP_ERROR_ONCE(logger_, "NOT 16x9 or 4x3 resolution");
   }
 }
 

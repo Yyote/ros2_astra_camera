@@ -129,7 +129,7 @@ rmw_qos_profile_t getRMWQosProfileFromString(const std::string& str_qos) {
   } else if (upper_str_qos == "SENSOR_DATA") {
     return rmw_qos_profile_sensor_data;
   } else {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("astra_camera"),
+    RCLCPP_ERROR_ONCE(rclcpp::get_logger("astra_camera"),
                         "Invalid QoS profile: " << upper_str_qos << ". Using default QoS profile.");
     return rmw_qos_profile_default;
   }
@@ -160,7 +160,7 @@ openni::PixelFormat getPixelFormat(const std::string& str_format) {
   } else if (upper_str_format == "SHIFT_9_3") {
     return openni::PIXEL_FORMAT_SHIFT_9_3;
   } else {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("astra_camera"),
+    RCLCPP_ERROR_ONCE(rclcpp::get_logger("astra_camera"),
                         "Invalid pixel format: " << upper_str_format << ". Using default format.");
     return openni::PIXEL_FORMAT_DEPTH_1_MM;
   }

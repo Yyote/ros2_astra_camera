@@ -54,7 +54,7 @@ UVCCameraDriver::UVCCameraDriver(rclcpp::Node* node, std::shared_ptr<Parameters>
   auto err = uvc_init(&ctx_, nullptr);
   if (err != UVC_SUCCESS) {
     uvc_perror(err, "ERROR: uvc_init");
-    RCLCPP_ERROR_STREAM(logger_, "init uvc context failed, exit");
+    RCLCPP_ERROR_ONCE(logger_, "init uvc context failed, exit");
     exit(err);
   }
   config_.serial_number = serial_number;
@@ -109,7 +109,7 @@ UVCCameraDriver::~UVCCameraDriver() {
 }
 
 void UVCCameraDriver::openCamera() {
-  RCLCPP_INFO_STREAM(logger_, "open uvc camera");
+  RCLCPP_INFO_ONCE(logger_, "open uvc camera");
   uvc_error_t err;
   auto serial_number = config_.serial_number.empty() ? nullptr : config_.serial_number.c_str();
   CHECK(device_ == nullptr);
@@ -119,7 +119,7 @@ void UVCCameraDriver::openCamera() {
   }
   if (err != UVC_SUCCESS) {
     uvc_perror(err, "ERROR: uvc_find_device");
-    RCLCPP_ERROR_STREAM(logger_,
+    RCLCPP_ERROR_ONCE(logger_,
                         "find uvc device failed, retry " << config_.retry_count << " times");
     for (int i = 0; i < config_.retry_count; i++) {
       err = uvc_find_device(ctx_, &device_, config_.vendor_id, config_.product_id, serial_number);
@@ -129,11 +129,11 @@ void UVCCameraDriver::openCamera() {
       usleep(100 * i);
     }
   }
-  RCLCPP_INFO_STREAM(logger_, "uvc config: " << config_);
+  RCLCPP_INFO_ONCE(logger_, "uvc config: " << config_);
   if (err != UVC_SUCCESS) {
     std::stringstream ss;
     ss << "Find device error " << uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, ss.str());
+    RCLCPP_ERROR_ONCE(logger_, ss.str());
     uvc_unref_device(device_);
     throw std::runtime_error(ss.str());
   }
@@ -154,7 +154,7 @@ void UVCCameraDriver::openCamera() {
   uvc_set_status_callback(device_handle_, &UVCCameraDriver::autoControlsCallbackWrapper, this);
   CHECK_NOTNULL(device_handle_);
   CHECK_NOTNULL(device_);
-  RCLCPP_INFO_STREAM(logger_, "open camera success");
+  RCLCPP_INFO_ONCE(logger_, "open camera success");
   is_camera_opened_ = true;
 }
 
@@ -180,10 +180,10 @@ void UVCCameraDriver::setVideoMode() {
       break;
     }
   }
-  RCLCPP_INFO_STREAM(logger_, "set uvc mode " << width << "x" << height << "@" << fps << " format "
+  RCLCPP_INFO_ONCE(logger_, "set uvc mode " << width << "x" << height << "@" << fps << " format "
                                               << magic_enum::enum_name(uvc_format));
   if (err != UVC_SUCCESS) {
-    RCLCPP_ERROR_STREAM(logger_, "set uvc ctrl error " << uvc_strerror(err));
+    RCLCPP_ERROR_ONCE(logger_, "set uvc ctrl error " << uvc_strerror(err));
     uvc_close(device_handle_);
     device_handle_ = nullptr;
     uvc_unref_device(device_);
@@ -194,14 +194,14 @@ void UVCCameraDriver::setVideoMode() {
 
 void UVCCameraDriver::startStreaming() {
   if (is_streaming_started) {
-    RCLCPP_WARN_STREAM(logger_, "streaming is already started");
+    RCLCPP_WARN_ONCE(logger_, "streaming is already started");
     return;
   }
   setVideoMode();
   uvc_error_t stream_err =
       uvc_start_streaming(device_handle_, &ctrl_, &UVCCameraDriver::frameCallbackWrapper, this, 0);
   if (stream_err != UVC_SUCCESS) {
-    RCLCPP_ERROR_STREAM(logger_, "uvc start streaming error " << uvc_strerror(stream_err)
+    RCLCPP_ERROR_ONCE(logger_, "uvc start streaming error " << uvc_strerror(stream_err)
                                                               << " retry " << config_.retry_count
                                                               << " times");
     for (int i = 0; i < config_.retry_count; i++) {
@@ -231,10 +231,10 @@ void UVCCameraDriver::startStreaming() {
 
 void UVCCameraDriver::stopStreaming() {
   if (!is_streaming_started) {
-    RCLCPP_WARN_STREAM(logger_, "streaming is already stopped");
+    RCLCPP_WARN_ONCE(logger_, "streaming is already stopped");
     return;
   }
-  RCLCPP_INFO_STREAM(logger_, "stop uvc streaming");
+  RCLCPP_INFO_ONCE(logger_, "stop uvc streaming");
   uvc_stop_streaming(device_handle_);
   if (frame_buffer_) {
     uvc_free_frame(frame_buffer_);
@@ -321,8 +321,8 @@ enum uvc_frame_format UVCCameraDriver::UVCFrameFormatString(const std::string& f
   } else if (format == "gray8") {
     return UVC_COLOR_FORMAT_GRAY8;
   } else {
-    RCLCPP_WARN_STREAM(logger_, "Invalid Video Mode: " << format);
-    RCLCPP_WARN_STREAM(logger_, "Continue using video mode: uncompressed");
+    RCLCPP_WARN_ONCE(logger_, "Invalid Video Mode: " << format);
+    RCLCPP_WARN_ONCE(logger_, "Continue using video mode: uncompressed");
     return UVC_COLOR_FORMAT_UNCOMPRESSED;
   }
 }
@@ -423,7 +423,7 @@ void UVCCameraDriver::autoControlsCallback(enum uvc_status_class status_class, i
   (void)data;
   sprintf(buff, "Controls callback. class: %d, event: %d, selector: %d, attr: %d, data_len: %zu\n",
           status_class, event, selector, status_attribute, data_len);
-  RCLCPP_INFO_STREAM(logger_, buff);
+  RCLCPP_INFO_ONCE(logger_, buff);
 }
 
 bool UVCCameraDriver::getUVCExposureCb(const std::shared_ptr<GetInt32::Request>& request,
@@ -433,7 +433,7 @@ bool UVCCameraDriver::getUVCExposureCb(const std::shared_ptr<GetInt32::Request>&
   uvc_error_t err = uvc_get_exposure_abs(device_handle_, &data, UVC_GET_CUR);
   if (err != UVC_SUCCESS) {
     auto msg = uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, "setUVCMirrorCb " << msg);
+    RCLCPP_ERROR_ONCE(logger_, "setUVCMirrorCb " << msg);
     response->message = msg;
     return false;
   }
@@ -444,9 +444,9 @@ bool UVCCameraDriver::getUVCExposureCb(const std::shared_ptr<GetInt32::Request>&
 bool UVCCameraDriver::setUVCExposureCb(const std::shared_ptr<SetInt32::Request>& request,
                                        std::shared_ptr<SetInt32::Response>& response) {
   if (request->data == 0) {
-    RCLCPP_ERROR_STREAM(logger_, "set auto mode");
+    RCLCPP_ERROR_ONCE(logger_, "set auto mode");
     uvc_error_t err = uvc_set_ae_mode(device_handle_, 8);  // 8才是自动8: aperture priority mode
-    RCLCPP_ERROR_STREAM(logger_, "uvc_set_ae_mode error " << uvc_strerror(err));
+    RCLCPP_ERROR_ONCE(logger_, "uvc_set_ae_mode error " << uvc_strerror(err));
     return true;
   }
   uint32_t max_expo, min_expo;
@@ -456,7 +456,7 @@ bool UVCCameraDriver::setUVCExposureCb(const std::shared_ptr<SetInt32::Request>&
     std::stringstream ss;
     ss << "Exposure value out of range. Min: " << min_expo << ", Max: " << max_expo;
     response->message = ss.str();
-    RCLCPP_ERROR_STREAM(logger_, response->message);
+    RCLCPP_ERROR_ONCE(logger_, response->message);
     return false;
   }
   uvc_set_ae_mode(
@@ -474,7 +474,7 @@ bool UVCCameraDriver::getUVCGainCb(const std::shared_ptr<GetInt32::Request>& req
   auto err = uvc_get_gain(device_handle_, &data, UVC_GET_CUR);
   if (err != UVC_SUCCESS) {
     auto msg = uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, "setUVCMirrorCb " << msg);
+    RCLCPP_ERROR_ONCE(logger_, "setUVCMirrorCb " << msg);
     response->message = msg;
     return false;
   }
@@ -491,7 +491,7 @@ bool UVCCameraDriver::setUVCGainCb(const std::shared_ptr<SetInt32::Request>& req
     std::stringstream ss;
     ss << "Gain must be between " << min_gain << " and " << max_gain;
     response->message = ss.str();
-    RCLCPP_ERROR_STREAM(logger_, response->message);
+    RCLCPP_ERROR_ONCE(logger_, response->message);
     return false;
   }
   uvc_error_t err = uvc_set_gain(device_handle_, request->data);
@@ -505,7 +505,7 @@ bool UVCCameraDriver::getUVCWhiteBalanceCb(const std::shared_ptr<GetInt32::Reque
   auto err = uvc_get_white_balance_temperature(device_handle_, &data, UVC_GET_CUR);
   if (err != UVC_SUCCESS) {
     auto msg = uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, "setUVCMirrorCb " << msg);
+    RCLCPP_ERROR_ONCE(logger_, "setUVCMirrorCb " << msg);
     response->message = msg;
     return false;
   }
@@ -530,7 +530,7 @@ bool UVCCameraDriver::setUVCWhiteBalanceCb(const std::shared_ptr<SetInt32::Reque
     std::stringstream ss;
     ss << "Please set white balance between " << min_white_balance << "and " << max_white_balance;
     response->message = ss.str();
-    RCLCPP_ERROR_STREAM(logger_, ss.str());
+    RCLCPP_ERROR_ONCE(logger_, ss.str());
     return false;
   }
   int ret = uvc_set_ctrl(device_handle_, unit, control, data, sizeof(int32_t));
@@ -538,7 +538,7 @@ bool UVCCameraDriver::setUVCWhiteBalanceCb(const std::shared_ptr<SetInt32::Reque
     auto err = static_cast<uvc_error_t>(ret);
     std::stringstream ss;
     ss << "set white balance failed " << uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, ss.str());
+    RCLCPP_ERROR_ONCE(logger_, ss.str());
     response->message = ss.str();
     return false;
   }
@@ -551,7 +551,7 @@ bool UVCCameraDriver::setUVCAutoExposureCb(const std::shared_ptr<SetBool::Reques
   auto err = uvc_set_ae_mode(device_handle_, mode);
   if (err != UVC_SUCCESS) {
     auto msg = uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, "setUVCMirrorCb " << msg);
+    RCLCPP_ERROR_ONCE(logger_, "setUVCMirrorCb " << msg);
     response->success = false;
     response->message = msg;
     return false;
@@ -564,7 +564,7 @@ bool UVCCameraDriver::setUVCAutoWhiteBalanceCb(const std::shared_ptr<SetBool::Re
   auto err = uvc_set_white_balance_temperature_auto(device_handle_, request->data);
   if (err != UVC_SUCCESS) {
     auto msg = uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, "setUVCMirrorCb " << msg);
+    RCLCPP_ERROR_ONCE(logger_, "setUVCMirrorCb " << msg);
     response->success = false;
     response->message = msg;
     return false;
@@ -579,7 +579,7 @@ bool UVCCameraDriver::getUVCMirrorCb(const std::shared_ptr<GetInt32::Request>& r
   auto err = uvc_get_roll_abs(device_handle_, &roll, UVC_GET_CUR);
   if (err != UVC_SUCCESS) {
     auto msg = uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, "setUVCMirrorCb " << msg);
+    RCLCPP_ERROR_ONCE(logger_, "setUVCMirrorCb " << msg);
     response->message = msg;
     return false;
   }
@@ -598,7 +598,7 @@ bool UVCCameraDriver::setUVCMirrorCb(const std::shared_ptr<SetBool::Request>& re
   auto err = uvc_set_roll_abs(device_handle_, roll);
   if (err != UVC_SUCCESS) {
     auto msg = uvc_strerror(err);
-    RCLCPP_ERROR_STREAM(logger_, "setUVCMirrorCb " << msg);
+    RCLCPP_ERROR_ONCE(logger_, "setUVCMirrorCb " << msg);
     response->success = false;
     response->message = msg;
     return false;
